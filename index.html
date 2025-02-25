@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Countdown Timer</title>
+  <style>
+    :root {
+      --primary: #4f46e5;
+      --primary-light: #818cf8;
+      --dark: #1e293b;
+      --light: #f8fafc;
+      --grey: #64748b;
+      --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    }
+    
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    }
+    
+    body {
+      background-color: var(--light);
+      color: var(--dark);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+    
+    .container {
+      max-width: 800px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 2rem;
+    }
+    
+    h1 {
+      text-align: center;
+      margin-bottom: 1rem;
+      color: var(--primary);
+      font-size: 2.5rem;
+    }
+    
+    .form-container {
+      background-color: white;
+      border-radius: 12px;
+      padding: 2rem;
+      box-shadow: var(--shadow);
+    }
+    
+    .input-group {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      margin-bottom: 1.5rem;
+    }
+    
+    label {
+      font-weight: 600;
+      color: var(--dark);
+    }
+    
+    input {
+      padding: 0.75rem;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 1rem;
+    }
+    
+    input:focus {
+      outline: 2px solid var(--primary-light);
+      border-color: var(--primary);
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 1rem;
+      margin-top: 1rem;
+    }
+    
+    button {
+      padding: 0.75rem 1.5rem;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    
+    .btn-primary {
+      background-color: var(--primary);
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: var(--primary-light);
+    }
+    
+    .btn-secondary {
+      background-color: #e2e8f0;
+      color: var(--dark);
+    }
+    
+    .btn-secondary:hover {
+      background-color: #cbd5e1;
+    }
+    
+    .countdown-container {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 1.5rem;
+    }
+    
+    .countdown-card {
+      background-color: white;
+      border-radius: 12px;
+      padding: 1.5rem;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      position: relative;
+    }
+    
+    .countdown-title {
+      font-size: 1.25rem;
+      font-weight: 600;
+      color: var(--dark);
+    }
+    
+    .countdown-target {
+      color: var(--grey);
+      font-size: 0.875rem;
+    }
+    
+    .countdown-display {
+      display: flex;
+      justify-content: space-around;
+      text-align: center;
+      gap: 0.5rem;
+    }
+    
+    .countdown-unit {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    
+    .countdown-value {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--primary);
+    }
+    
+    .countdown-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--grey);
+    }
+    
+    .delete-btn {
+      position: absolute;
+      top: 1rem;
+      right: 1rem;
+      background: none;
+      border: none;
+      color: var(--grey);
+      cursor: pointer;
+      font-size: 1.25rem;
+      padding: 0.25rem;
+      transition: color 0.2s ease;
+    }
+    
+    .delete-btn:hover {
+      color: #ef4444;
+    }
+    
+    @media (max-width: 640px) {
+      .button-group {
+        flex-direction: column;
+      }
+      
+      .countdown-display {
+        flex-wrap: wrap;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h1>Countdown Timer</h1>
+    
+    <div class="form-container">
+      <div class="input-group">
+        <label for="event-name">Event Name</label>
+        <input type="text" id="event-name" placeholder="Eid al-Fitr">
+      </div>
+      
+      <div class="input-group">
+        <label for="date-input">Date</label>
+        <input type="date" id="date-input">
+      </div>
+      
+      <div class="input-group">
+        <label for="time-input">Time</label>
+        <input type="time" id="time-input">
+      </div>
+      
+      <div class="button-group">
+        <button class="btn-primary" id="create-btn">Create Countdown</button>
+        <button class="btn-secondary" id="clear-btn">Clear All</button>
+      </div>
+    </div>
+    
+    <div class="countdown-container" id="countdown-container">
+    </div>
+  </div>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const eventNameInput = document.getElementById('event-name');
+      const dateInput = document.getElementById('date-input');
+      const timeInput = document.getElementById('time-input');
+      const createBtn = document.getElementById('create-btn');
+      const clearBtn = document.getElementById('clear-btn');
+      const countdownContainer = document.getElementById('countdown-container');
+      
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      dateInput.value = formatDate(tomorrow);
+      timeInput.value = '12:00';
+      
+      loadCountdowns();
+      
+      setInterval(updateAllCountdowns, 1000);
+      
+      createBtn.addEventListener('click', createCountdown);
+      clearBtn.addEventListener('click', clearAllCountdowns);
+      
+      function createCountdown() {
+        const eventName = eventNameInput.value.trim() || 'Countdown';
+        const dateValue = dateInput.value;
+        const timeValue = timeInput.value;
+        
+        if (!dateValue) {
+          alert('Please select a date');
+          return;
+        }
+        
+        const targetDate = new Date(`${dateValue}T${timeValue || '00:00'}`);
+        
+        if (targetDate <= new Date()) {
+          alert('Please select a future date and time');
+          return;
+        }
+        
+        const countdown = {
+          id: Date.now().toString(),
+          name: eventName,
+          targetDate: targetDate.toISOString(),
+          createdAt: new Date().toISOString()
+        };
+        
+        const savedCountdowns = getSavedCountdowns();
+        savedCountdowns.push(countdown);
+        localStorage.setItem('countdowns', JSON.stringify(savedCountdowns));
+        
+        renderCountdown(countdown);
+        
+        eventNameInput.value = '';
+      }
+      
+      function renderCountdown(countdown) {
+        const { id, name, targetDate } = countdown;
+        const targetDateObj = new Date(targetDate);
+        
+        const card = document.createElement('div');
+        card.className = 'countdown-card';
+        card.dataset.id = id;
+        
+        card.innerHTML = `
+          <div class="countdown-title">${name}</div>
+          <div class="countdown-target">Target: ${formatDateForDisplay(targetDateObj)}</div>
+          <div class="countdown-display">
+            <div class="countdown-unit">
+              <div class="countdown-value days">--</div>
+              <div class="countdown-label">Days</div>
+            </div>
+            <div class="countdown-unit">
+              <div class="countdown-value hours">--</div>
+              <div class="countdown-label">Hours</div>
+            </div>
+            <div class="countdown-unit">
+              <div class="countdown-value minutes">--</div>
+              <div class="countdown-label">Minutes</div>
+            </div>
+            <div class="countdown-unit">
+              <div class="countdown-value seconds">--</div>
+              <div class="countdown-label">Seconds</div>
+            </div>
+          </div>
+          <button class="delete-btn" data-id="${id}">×</button>
+        `;
+        
+        countdownContainer.appendChild(card);
+        
+        card.querySelector('.delete-btn').addEventListener('click', (e) => {
+          const id = e.target.dataset.id;
+          deleteCountdown(id);
+        });
+        
+        updateCountdown(card, targetDateObj);
+      }
+      
+      function updateCountdown(countdownElement, targetDate) {
+        const now = new Date();
+        const diff = targetDate - now;
+        
+        if (diff <= 0) {
+          countdownElement.querySelector('.days').textContent = '0';
+          countdownElement.querySelector('.hours').textContent = '0';
+          countdownElement.querySelector('.minutes').textContent = '0';
+          countdownElement.querySelector('.seconds').textContent = '0';
+          return;
+        }
+        
+        const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+        const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+        const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+        const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+        
+        countdownElement.querySelector('.days').textContent = days;
+        countdownElement.querySelector('.hours').textContent = hours;
+        countdownElement.querySelector('.minutes').textContent = minutes;
+        countdownElement.querySelector('.seconds').textContent = seconds;
+        
+        const name = countdownElement.querySelector('.countdown-title').textContent;
+        document.title = `${days}d ${hours}h ${minutes}m ${seconds}s - ${name}`;
+      }
+      
+      function updateAllCountdowns() {
+        const countdownElements = document.querySelectorAll('.countdown-card');
+        
+        if (countdownElements.length === 0) {
+          document.title = 'Countdown Timer';
+          return;
+        }
+        
+        const firstCountdown = countdownElements[0];
+        const id = firstCountdown.dataset.id;
+        const savedCountdowns = getSavedCountdowns();
+        const countdown = savedCountdowns.find(c => c.id === id);
+        
+        if (countdown) {
+          const targetDate = new Date(countdown.targetDate);
+          updateCountdown(firstCountdown, targetDate);
+        }
+        
+        countdownElements.forEach((element, index) => {
+          if (index === 0) return; 
+          
+          const id = element.dataset.id;
+          const countdown = savedCountdowns.find(c => c.id === id);
+          
+          if (countdown) {
+            const targetDate = new Date(countdown.targetDate);
+            const now = new Date();
+            const diff = targetDate - now;
+            
+            if (diff <= 0) {
+              element.querySelector('.days').textContent = '0';
+              element.querySelector('.hours').textContent = '0';
+              element.querySelector('.minutes').textContent = '0';
+              element.querySelector('.seconds').textContent = '0';
+              return;
+            }
+            
+            const days = Math.floor(diff / (1000 * 60 * 60 * 24));
+            const hours = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+            
+            element.querySelector('.days').textContent = days;
+            element.querySelector('.hours').textContent = hours;
+            element.querySelector('.minutes').textContent = minutes;
+            element.querySelector('.seconds').textContent = seconds;
+          }
+        });
+      }
+      
+      function deleteCountdown(id) {
+        const savedCountdowns = getSavedCountdowns();
+        const updatedCountdowns = savedCountdowns.filter(c => c.id !== id);
+        localStorage.setItem('countdowns', JSON.stringify(updatedCountdowns));
+        
+        const element = document.querySelector(`.countdown-card[data-id="${id}"]`);
+        if (element) {
+          element.remove();
+        }
+        
+        if (updatedCountdowns.length === 0) {
+          document.title = 'Countdown Timer';
+        }
+      }
+      
+      function clearAllCountdowns() {
+        if (confirm('Are you sure you want to clear all countdowns?')) {
+          localStorage.removeItem('countdowns');
+          countdownContainer.innerHTML = '';
+          document.title = 'Countdown Timer';
+        }
+      }
+      
+      function loadCountdowns() {
+        const savedCountdowns = getSavedCountdowns();
+        savedCountdowns.forEach(countdown => {
+          renderCountdown(countdown);
+        });
+      }
+      
+      function getSavedCountdowns() {
+        const saved = localStorage.getItem('countdowns');
+        return saved ? JSON.parse(saved) : [];
+      }
+      
+      function formatDate(date) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+      }
+      
+      function formatDateForDisplay(date) {
+        return date.toLocaleString(undefined, {
+          weekday: 'short',
+          year: 'numeric',
+          month: 'short',
+          day: 'numeric',
+          hour: '2-digit',
+          minute: '2-digit'
+        });
+      }
+    });
+  </script>
+</body>
+</html>
